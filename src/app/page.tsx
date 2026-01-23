@@ -10,7 +10,7 @@ import Overlay from "@/components/Overlay";
 
 export default function Home() {
     return (
-        <main className="relative min-h-screen bg-[#0a0a0a]">
+        <main className="relative min-h-screen bg-[#030014]">
             <Navbar />
 
             {/* 3D Moving Image Hero Section */}
@@ -20,7 +20,7 @@ export default function Home() {
             </div>
 
             {/* Premium Content Sections (Appear after scroll) */}
-            <div className="relative z-20 bg-[#0a0a0a] -mt-screen"> {/* Negative margin to blend if needed, or just let it follow */}
+            <div className="relative z-20 bg-[#030014] -mt-screen"> {/* Negative margin to blend if needed, or just let it follow */}
                 <div id="about" />
                 <About />
                 <Skills />

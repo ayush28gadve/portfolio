@@ -3,11 +3,12 @@
 @tailwind utilities;
 
 :root {
-  --background: #0a0a0a;
+  --background: #030014;
   --foreground: #ededed;
 }
 
-html.lenis, html.lenis body {
+html.lenis,
+html.lenis body {
   height: auto;
 }
 

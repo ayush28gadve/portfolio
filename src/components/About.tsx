@@ -8,12 +8,14 @@ export default function About() {
     const [isExpanded, setIsExpanded] = useState(false);
 
     return (
-        <section className="relative py-32 px-6 overflow-hidden">
-            {/* Background Gradients */}
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[128px] -z-10" />
-            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[128px] -z-10" />
+        <section id="about" className="relative py-32 px-6 overflow-hidden">
+            {/* Premium Background Integration */}
+            <div className="absolute inset-0 bg-[#030014]" />
 
-            <div className="container mx-auto max-w-6xl">
+            <div className="absolute top-20 left-0 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[128px] mix-blend-screen opacity-40 pointer-events-none" />
+            <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[128px] mix-blend-screen opacity-40 pointer-events-none" />
+
+            <div className="container mx-auto max-w-6xl relative z-10">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
                     {/* Main Intro Card */}
@@ -21,8 +23,10 @@ export default function About() {
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        className="lg:col-span-8 p-10 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md relative overflow-hidden group"
+                        className="lg:col-span-8 p-10 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md relative overflow-hidden group hover:border-purple-500/30 transition-colors duration-500"
                     >
+                        {/* Card Glow Effect */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-blue-500/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                         <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                         <h2 className="text-sm font-bold tracking-[0.2em] text-primary uppercase mb-6 flex items-center gap-2 relative z-10">
@@ -88,17 +92,20 @@ export default function About() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ delay: 0.1 }}
-                        className="lg:col-span-4 p-8 rounded-3xl border border-white/10 backdrop-blur-md flex flex-col justify-between relative overflow-hidden group"
+                        className="lg:col-span-4 p-8 rounded-3xl border border-white/10 backdrop-blur-md flex flex-col justify-between relative overflow-hidden group hover:border-blue-500/30 transition-colors"
                         style={{
                             backgroundImage: "url('/about/ai-feature.png')",
                             backgroundSize: "cover",
                             backgroundPosition: "center"
                         }}
                     >
+                        {/* Card Glow Effect */}
+                        <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
                         {/* Dark Overlay for readability */}
                         <div className="absolute inset-0 bg-black/60 transition-opacity duration-300 group-hover:bg-black/50 z-0" />
 
-                        <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mb-6 relative z-10 backdrop-blur-sm border border-white/10">
+                        <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mb-6 relative z-10 backdrop-blur-sm border border-white/10 group-hover:scale-110 transition-transform duration-300">
                             <Cpu className="w-6 h-6 text-white" />
                         </div>
                         <div className="relative z-10">
@@ -115,14 +122,14 @@ export default function About() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ delay: 0.2 }}
-                        className="lg:col-span-5 p-8 rounded-3xl bg-[#0f0f0f] border border-white/10 relative"
+                        className="lg:col-span-5 p-8 rounded-3xl bg-[#0a0a0a] border border-white/10 relative hover:border-pink-500/30 transition-colors group"
                     >
-                        <div className="absolute top-6 right-6 text-6xl text-white/5 font-serif">"</div>
-                        <p className="text-xl text-neutral-300 italic relative z-10 leading-relaxed">
+                        <div className="absolute top-6 right-6 text-6xl text-white/5 font-serif group-hover:text-white/10 transition-colors">"</div>
+                        <p className="text-xl text-neutral-300 italic relative z-10 leading-relaxed group-hover:text-white transition-colors">
                             Instead of overcomplicating things, I believe in delivering fast, practical, and result-driven solutions.
                         </p>
                         <div className="mt-6 flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500" />
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 ring-2 ring-transparent group-hover:ring-white/20 transition-all" />
                             <div>
                                 <p className="text-sm font-bold text-white">Ayush Gadve</p>
                                 <p className="text-xs text-neutral-500">Developer & Designer</p>
@@ -138,15 +145,15 @@ export default function About() {
                         transition={{ delay: 0.3 }}
                         className="lg:col-span-7 grid grid-cols-1 md:grid-cols-2 gap-4"
                     >
-                        <div className="p-6 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors cursor-default group">
+                        <div className="p-6 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors cursor-default group hover:border-blue-500/30">
                             <Globe className="w-8 h-8 text-blue-400 mb-4 group-hover:scale-110 transition-transform" />
-                            <h4 className="text-lg font-bold text-white mb-1">Web Experiences</h4>
-                            <p className="text-sm text-neutral-400">Immersive, high-performance websites.</p>
+                            <h4 className="text-lg font-bold text-white mb-1 group-hover:text-blue-300 transition-colors">Web Experiences</h4>
+                            <p className="text-sm text-neutral-400 group-hover:text-neutral-300 transition-colors">Immersive, high-performance websites.</p>
                         </div>
-                        <div className="p-6 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors cursor-default group">
+                        <div className="p-6 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors cursor-default group hover:border-purple-500/30">
                             <Code2 className="w-8 h-8 text-purple-400 mb-4 group-hover:scale-110 transition-transform" />
-                            <h4 className="text-lg font-bold text-white mb-1">Clean Architecture</h4>
-                            <p className="text-sm text-neutral-400">Scalable, maintainable codebases.</p>
+                            <h4 className="text-lg font-bold text-white mb-1 group-hover:text-purple-300 transition-colors">Clean Architecture</h4>
+                            <p className="text-sm text-neutral-400 group-hover:text-neutral-300 transition-colors">Scalable, maintainable codebases.</p>
                         </div>
                     </motion.div>
 
