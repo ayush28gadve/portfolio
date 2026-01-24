@@ -6,6 +6,7 @@ import { MoveRight, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import SupportModal from "./SupportModal";
 import clsx from "clsx";
+import Image from "next/image";
 
 const navLinks = [
     { name: "About", href: "#about" },
@@ -15,13 +16,20 @@ const navLinks = [
 ];
 
 export default function Navbar() {
-    const [scrolled, setScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [supportOpen, setSupportOpen] = useState(false);
+    const [isVisible, setIsVisible] = useState(true);
 
     useEffect(() => {
         const handleScroll = () => {
-            setScrolled(window.scrollY > 50);
+            // "visible till I build digital experiences"
+            // That text appears around 20-40% of the 500vh hero section.
+            // Let's say we hide it after 1.5 viewports (approx 1200px) to be safe.
+            // Or whenever the user feels they have "scrolled down".
+            // User said: "navbar should be fixed at top only .. because it is getting merged when we scroll it down"
+            // So if we scroll past the initial top area, it should vanish.
+            const threshold = window.innerHeight * 1.2;
+            setIsVisible(window.scrollY < threshold);
         };
         window.addEventListener("scroll", handleScroll);
         return () => window.removeEventListener("scroll", handleScroll);
@@ -31,37 +39,36 @@ export default function Navbar() {
         if (href === "#support") {
             e.preventDefault();
             setSupportOpen(true);
-            setMobileMenuOpen(false); // Close mobile menu if open
+            setMobileMenuOpen(false);
         } else {
-            // For other links, let default behavior happen (smooth scroll via CSS or lenis usually handles anchors)
-            // If manual handling is needed, add it here.
             setMobileMenuOpen(false);
         }
     };
 
     return (
         <>
-            <header
-                className={clsx(
-                    "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b",
-                    scrolled
-                        ? "bg-transparent backdrop-blur-md border-white/5 py-4"
-                        : "bg-transparent border-transparent py-6"
-                )}
+            <motion.header
+                initial={{ opacity: 1, y: 0 }}
+                animate={{
+                    opacity: isVisible ? 1 : 0,
+                    y: isVisible ? 0 : -100,
+                    pointerEvents: isVisible ? "auto" : "none"
+                }}
+                transition={{ duration: 0.5 }}
+                className="fixed top-0 left-0 right-0 z-50 py-2"
             >
-                <div className="container mx-auto px-6 flex items-center justify-between">
-                    <Link href="/" className="text-xl font-bold tracking-tighter flex items-center gap-2">
-                        {/* Custom Logo for Ayush Gadve */}
-                        <div className="w-10 h-10 relative flex items-center justify-center">
-                            <svg viewBox="0 0 100 100" className="w-full h-full text-white fill-current" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M50 0 L100 100 L0 100 Z" fill="none" stroke="currentColor" strokeWidth="5" />
-                                <path d="M50 20 L80 80 L20 80 Z" fill="currentColor" opacity="0.5" />
-                            </svg>
-                            <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black tracking-tighter mix-blend-difference text-white">
-                                AG
-                            </span>
+                <div className="w-full px-4 md:px-10 flex items-center justify-between">
+                    <Link href="/" className="text-xl font-bold tracking-tighter flex items-center gap-3">
+                        {/* Custom Logo Image */}
+                        <div className="relative w-32 h-32 md:w-44 md:h-44">
+                            <Image
+                                src="/ag-logo-v2.png"
+                                alt="Ayush Gadve Logo"
+                                fill
+                                className="object-contain"
+                                priority
+                            />
                         </div>
-                        <span className="text-white">Ayush Gadve</span>
                     </Link>
 
                     {/* Desktop Nav */}
@@ -126,7 +133,7 @@ export default function Navbar() {
                         </motion.div>
                     )}
                 </AnimatePresence>
-            </header>
+            </motion.header>
 
             <SupportModal isOpen={supportOpen} onClose={() => setSupportOpen(false)} />
         </>
