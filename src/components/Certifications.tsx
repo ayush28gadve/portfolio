@@ -16,6 +16,13 @@ interface Certification {
 
 const certifications: Certification[] = [
     {
+        title: "Bharatiya Antariksh Hackathon 2025",
+        issuer: "ISRO • 2025",
+        desc: "Certificate of Acknowledgement for successfully submitting an idea for the Bharatiya Antariksh Hackathon 2025. This participation reflects innovation, curiosity, and commitment in solving real-world challenges of space and technology. Acknowledged contribution to India's space innovation journey.",
+        image: "/certificates/isro-hackathon-2025.png",
+        link: "/certificates/isro-hackathon-2025.png"
+    },
+    {
         title: "AI with Machine Learning",
         issuer: "IIT Kanpur (Ethical Edufabrica) • Feb-Mar 2025",
         desc: "Specialized training program on Artificial Intelligence with Machine Learning. Conducted in association with Antaragni, IIT Kanpur. Covered advanced ML algorithms, neural networks, and applications.",
