@@ -1,164 +1,264 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ArrowUpRight, Code2, Cpu, Globe } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
+import { Globe, Cpu, Code2, Zap, Bot, GitBranch, Sparkles } from "lucide-react";
 
 export default function About() {
-    const [isExpanded, setIsExpanded] = useState(false);
+    const shouldReduceMotion = useReducedMotion();
+
+    const bottomCards = [
+        {
+            icon: Globe,
+            title: "Web Experiences",
+            description: "Responsive websites built around usability, performance, and business goals.",
+            accent: "from-blue-500/20 to-cyan-500/10",
+            iconColor: "text-blue-400",
+            hoverBorder: "group-hover:border-blue-500/40",
+            hoverText: "group-hover:text-blue-300",
+        },
+        {
+            icon: Cpu,
+            title: "Intelligent Automation",
+            description: "AI agents and connected workflows that reduce repetitive work.",
+            accent: "from-purple-500/20 to-indigo-500/10",
+            iconColor: "text-indigo-400",
+            hoverBorder: "group-hover:border-indigo-500/40",
+            hoverText: "group-hover:text-indigo-300",
+        },
+        {
+            icon: Code2,
+            title: "Clean Architecture",
+            description: "Maintainable applications, reliable integrations, and scalable foundations.",
+            accent: "from-pink-500/20 to-purple-500/10",
+            iconColor: "text-purple-400",
+            hoverBorder: "group-hover:border-purple-500/40",
+            hoverText: "group-hover:text-purple-300",
+        },
+    ];
 
     return (
-        <section id="about" className="relative py-32 px-6 overflow-hidden">
-            {/* Premium Background Integration */}
+        <section id="about" className="relative py-28 md:py-32 px-6 overflow-hidden">
+            {/* Ambient Background & Glow */}
             <div className="absolute inset-0 bg-[#030014]" />
-
-            <div className="absolute top-20 left-0 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[128px] mix-blend-screen opacity-40 pointer-events-none" />
-            <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[128px] mix-blend-screen opacity-40 pointer-events-none" />
+            <div className="absolute top-20 left-0 w-[500px] h-[500px] bg-primary/15 rounded-full blur-[130px] mix-blend-screen opacity-40 pointer-events-none" />
+            <div className="absolute bottom-10 right-0 w-[500px] h-[500px] bg-purple-600/15 rounded-full blur-[130px] mix-blend-screen opacity-40 pointer-events-none" />
 
             <div className="container mx-auto max-w-6xl relative z-10">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
 
                     {/* Main Intro Card */}
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        className="lg:col-span-8 p-10 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md relative overflow-hidden group hover:border-purple-500/30 transition-colors duration-500"
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                        className="lg:col-span-7 xl:col-span-8 p-8 sm:p-10 md:p-12 rounded-3xl bg-white/[0.04] border border-white/10 backdrop-blur-md relative overflow-hidden group hover:border-purple-500/30 transition-colors duration-500 flex flex-col justify-between"
                     >
-                        {/* Card Glow Effect */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-blue-500/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                        {/* Subtle Card Glow */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-transparent to-blue-500/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-                        <h2 className="text-sm font-bold tracking-[0.2em] text-primary uppercase mb-6 flex items-center gap-2 relative z-10">
-                            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                            Who I Am
-                        </h2>
+                        <div className="relative z-10">
+                            {/* Section Badge */}
+                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-semibold tracking-[0.2em] text-primary uppercase mb-6">
+                                <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                                Who I Am
+                            </div>
 
-                        <h3 className="text-3xl md:text-5xl font-medium leading-tight text-white mb-8 relative z-10">
-                            I'm a <span className="text-white font-bold">CSE Student</span> fusing
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400"> Creative Engineering</span> with
-                            Artificial Intelligence.
-                        </h3>
+                            {/* Headline */}
+                            <motion.h3
+                                initial={shouldReduceMotion ? false : { opacity: 0, y: 15 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
+                                className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-[1.18] mb-6 text-balance"
+                            >
+                                I build{" "}
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400">
+                                    digital experiences
+                                </span>
+                                . I automate what{" "}
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400">
+                                    slows businesses down
+                                </span>
+                                .
+                            </motion.h3>
 
-                        <p className="text-lg text-neutral-400 leading-relaxed max-w-2xl relative z-10">
-                            I don't just write code; I build digital ecosystems. By combining modern web frameworks with advanced AI agents,
-                            I create solutions that are not only functional but intelligent. My focus is on <span className="text-white">speed, scalability, and impact</span>.
-                        </p>
+                            {/* Supporting Paragraphs */}
+                            <div className="space-y-4 text-base sm:text-lg leading-relaxed text-neutral-300/90 font-normal max-w-2xl">
+                                <p>
+                                    I develop modern websites, full-stack applications, and AI-powered automations that turn complex workflows into practical digital solutions.
+                                </p>
+                                <p className="text-neutral-400">
+                                    From web development to intelligent integrations, I combine engineering, thoughtful design, and automation to help businesses work smarter.
+                                </p>
+                            </div>
+                        </div>
 
-                        <AnimatePresence>
-                            {isExpanded && (
-                                <motion.div
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: "auto" }}
-                                    exit={{ opacity: 0, height: 0 }}
-                                    className="overflow-hidden relative z-10"
+                        {/* Core Capabilities Pills */}
+                        <div className="pt-8 mt-8 border-t border-white/10 flex flex-wrap items-center gap-2 relative z-10">
+                            {[
+                                "Full-Stack Development",
+                                "Business Websites",
+                                "AI Chatbots & Agents",
+                                "n8n Workflows",
+                                "API Integrations",
+                            ].map((tag) => (
+                                <span
+                                    key={tag}
+                                    className="px-3 py-1 rounded-full text-xs font-medium bg-white/5 text-neutral-300 border border-white/10 hover:border-purple-400/40 hover:text-white transition-colors"
                                 >
-                                    <div className="pt-6 space-y-6 text-neutral-400 border-t border-white/10 mt-6 text-lg leading-relaxed">
-                                        <div>
-                                            <strong className="text-white block mb-2 text-xl">Engineering & execution</strong>
-                                            <p>
-                                                I am an avid builder with extensive experience in **Hackathons**. I thrive in high-pressure environments, building **real-world solutions** under strict time constraints. My portfolio is built on a foundation of shipping numerous complex projects, proving that I don't just write code—I deliver results.
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <strong className="text-white block mb-2 text-xl">Specialized AI Training</strong>
-                                            <p>
-                                                My expertise extends beyond standard web dev. I have undergone rigorous training in **AI WITH MACHINE LEARNING** through a specialized online program by **IIT Kanpur**. This academic backing allows me to integrate genuine data science principles into modern applications.
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <strong className="text-white block mb-2 text-xl">Beyond the Code</strong>
-                                            <p>
-                                                A great product needs to be seen. With a strong grasp of **Digital Marketing**, I understand the full lifecycle of a digital product—from development to user acquisition. I build with an understanding of SEO, brand positioning, and market impact.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-
-                        <button
-                            onClick={() => setIsExpanded(!isExpanded)}
-                            className="mt-8 flex items-center gap-2 text-sm font-bold text-primary hover:text-white transition-colors uppercase tracking-wider relative z-10"
-                        >
-                            {isExpanded ? "Read Less" : "Read More"}
-                            <ArrowUpRight className={`w-4 h-4 transition-transform duration-300 ${isExpanded ? "rotate-45" : "rotate-0"}`} />
-                        </button>
+                                    {tag}
+                                </span>
+                            ))}
+                        </div>
                     </motion.div>
 
-                    {/* Stat / Highlight Card 1 */}
+                    {/* Right-Hand Feature Card: Intelligent Automation */}
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        transition={{ delay: 0.1 }}
-                        className="lg:col-span-4 p-8 rounded-3xl border border-white/10 backdrop-blur-md flex flex-col justify-between relative overflow-hidden group hover:border-blue-500/30 transition-colors"
-                        style={{
-                            backgroundImage: "url('/about/ai-feature.png')",
-                            backgroundSize: "cover",
-                            backgroundPosition: "center"
-                        }}
+                        transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
+                        className="lg:col-span-5 xl:col-span-4 p-8 rounded-3xl bg-white/[0.04] border border-white/10 backdrop-blur-md flex flex-col justify-between relative overflow-hidden group hover:border-blue-500/40 transition-all duration-500"
                     >
-                        {/* Card Glow Effect */}
-                        <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                        {/* Glow and radial ambience */}
+                        <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 via-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-                        {/* Dark Overlay for readability */}
-                        <div className="absolute inset-0 bg-black/60 transition-opacity duration-300 group-hover:bg-black/50 z-0" />
+                        {/* Visual: Connected Workflow Nodes / AI Automation Pipeline */}
+                        <div className="relative z-10 w-full mb-6">
+                            {/* Live Pipeline Badge */}
+                            <div className="flex items-center justify-between mb-5">
+                                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-semibold text-emerald-400">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                    Active Pipeline
+                                </div>
+                                <span className="text-[11px] font-mono text-neutral-400">n8n • APIs • LLM</span>
+                            </div>
 
-                        <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mb-6 relative z-10 backdrop-blur-sm border border-white/10 group-hover:scale-110 transition-transform duration-300">
-                            <Cpu className="w-6 h-6 text-white" />
+                            {/* Node Pipeline Diagram */}
+                            <div className="p-4 rounded-2xl bg-black/40 border border-white/10 relative overflow-hidden">
+                                <div className="flex flex-col gap-3 relative">
+                                    {/* Node 1: Event Trigger */}
+                                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.05] border border-white/10 group/node hover:border-blue-400/30 transition-colors">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className="w-7 h-7 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs">
+                                                <Zap className="w-3.5 h-3.5" />
+                                            </div>
+                                            <div>
+                                                <div className="text-xs font-semibold text-white">Event Trigger</div>
+                                                <div className="text-[10px] text-neutral-400">API Webhook / Form</div>
+                                            </div>
+                                        </div>
+                                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/20 text-blue-300">200 OK</span>
+                                    </div>
+
+                                    {/* Animated Connector Line 1 */}
+                                    <div className="flex items-center justify-center my--1 relative h-4">
+                                        <div className="w-0.5 h-full bg-gradient-to-b from-blue-400 to-purple-400" />
+                                        <motion.div
+                                            animate={shouldReduceMotion ? {} : { y: [-6, 6] }}
+                                            transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                                            className="absolute w-1.5 h-1.5 rounded-full bg-blue-300 shadow-[0_0_8px_#60a5fa]"
+                                        />
+                                    </div>
+
+                                    {/* Node 2: AI Agent & Logic Core */}
+                                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-gradient-to-r from-purple-500/15 via-indigo-500/10 to-transparent border border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.1)]">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className="w-7 h-7 rounded-lg bg-purple-500/25 text-purple-300 flex items-center justify-center text-xs">
+                                                <Bot className="w-3.5 h-3.5" />
+                                            </div>
+                                            <div>
+                                                <div className="text-xs font-semibold text-white flex items-center gap-1.5">
+                                                    AI Agent Reasoning
+                                                    <Sparkles className="w-3 h-3 text-purple-400" />
+                                                </div>
+                                                <div className="text-[10px] text-neutral-400">LLM Analysis & Logic</div>
+                                            </div>
+                                        </div>
+                                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/20 text-purple-300">Streaming</span>
+                                    </div>
+
+                                    {/* Animated Connector Line 2 */}
+                                    <div className="flex items-center justify-center my--1 relative h-4">
+                                        <div className="w-0.5 h-full bg-gradient-to-b from-purple-400 to-indigo-400" />
+                                        <motion.div
+                                            animate={shouldReduceMotion ? {} : { y: [-6, 6] }}
+                                            transition={{ duration: 1.6, delay: 0.8, repeat: Infinity, ease: "easeInOut" }}
+                                            className="absolute w-1.5 h-1.5 rounded-full bg-purple-300 shadow-[0_0_8px_#c084fc]"
+                                        />
+                                    </div>
+
+                                    {/* Node 3: Automated Action & Sync */}
+                                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.05] border border-white/10 group/node hover:border-indigo-400/30 transition-colors">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-xs">
+                                                <GitBranch className="w-3.5 h-3.5" />
+                                            </div>
+                                            <div>
+                                                <div className="text-xs font-semibold text-white">Automated Output</div>
+                                                <div className="text-[10px] text-neutral-400">CRM • Database • Email</div>
+                                            </div>
+                                        </div>
+                                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">Success</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div className="relative z-10">
-                            <h4 className="text-4xl font-bold text-white mb-2">AI-First</h4>
-                            <p className="text-sm text-neutral-200 font-medium">
-                                Leveraging LLMs & Agents to automate complex workflows.
+
+                        {/* Card Copy */}
+                        <div className="relative z-10 mt-auto">
+                            <h4 className="text-2xl sm:text-3xl font-bold text-white mb-2 tracking-tight">
+                                Intelligent Automation
+                            </h4>
+                            <p className="text-sm text-neutral-300 leading-relaxed font-normal">
+                                Connecting tools, automating repetitive workflows, and building AI-powered systems.
                             </p>
                         </div>
                     </motion.div>
 
-                    {/* Quote / Philosophy Card */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: 0.2 }}
-                        className="lg:col-span-5 p-8 rounded-3xl bg-[#0a0a0a] border border-white/10 relative hover:border-pink-500/30 transition-colors group"
-                    >
-                        <div className="absolute top-6 right-6 text-6xl text-white/5 font-serif group-hover:text-white/10 transition-colors">"</div>
-                        <p className="text-xl text-neutral-300 italic relative z-10 leading-relaxed group-hover:text-white transition-colors">
-                            Instead of overcomplicating things, I believe in delivering fast, practical, and result-driven solutions.
-                        </p>
-                        <div className="mt-6 flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 ring-2 ring-transparent group-hover:ring-white/20 transition-all" />
-                            <div>
-                                <p className="text-sm font-bold text-white">Ayush Gadve</p>
-                                <p className="text-xs text-neutral-500">Developer & Designer</p>
-                            </div>
-                        </div>
-                    </motion.div>
+                    {/* Bottom Capability Cards (3 cards spanning full width) */}
+                    <div className="lg:col-span-12 grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+                        {bottomCards.map((card, index) => {
+                            const IconComponent = card.icon;
+                            return (
+                                <motion.div
+                                    key={card.title}
+                                    initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ duration: 0.5, delay: index * 0.1, ease: "easeOut" }}
+                                    whileHover={shouldReduceMotion ? {} : { y: -6, scale: 1.01 }}
+                                    className={`relative p-7 sm:p-8 rounded-3xl bg-white/[0.04] border border-white/10 backdrop-blur-md cursor-default group overflow-hidden ${card.hoverBorder} transition-all duration-300 flex flex-col justify-between`}
+                                >
+                                    {/* Hover Glow Background */}
+                                    <div
+                                        className={`absolute inset-0 bg-gradient-to-br ${card.accent} opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`}
+                                    />
 
-                    {/* Features Bento Grid */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: 0.3 }}
-                        className="lg:col-span-7 grid grid-cols-1 md:grid-cols-2 gap-4"
-                    >
-                        <div className="p-6 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors cursor-default group hover:border-blue-500/30">
-                            <Globe className="w-8 h-8 text-blue-400 mb-4 group-hover:scale-110 transition-transform" />
-                            <h4 className="text-lg font-bold text-white mb-1 group-hover:text-blue-300 transition-colors">Web Experiences</h4>
-                            <p className="text-sm text-neutral-400 group-hover:text-neutral-300 transition-colors">Immersive, high-performance websites.</p>
-                        </div>
-                        <div className="p-6 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors cursor-default group hover:border-purple-500/30">
-                            <Code2 className="w-8 h-8 text-purple-400 mb-4 group-hover:scale-110 transition-transform" />
-                            <h4 className="text-lg font-bold text-white mb-1 group-hover:text-purple-300 transition-colors">Clean Architecture</h4>
-                            <p className="text-sm text-neutral-400 group-hover:text-neutral-300 transition-colors">Scalable, maintainable codebases.</p>
-                        </div>
-                    </motion.div>
+                                    <div className="relative z-10">
+                                        <div
+                                            className={`w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-6 ${card.iconColor} group-hover:scale-110 transition-transform duration-300`}
+                                        >
+                                            <IconComponent className="w-6 h-6" />
+                                        </div>
+                                        <h4
+                                            className={`text-xl font-bold text-white mb-2 ${card.hoverText} transition-colors tracking-tight`}
+                                        >
+                                            {card.title}
+                                        </h4>
+                                        <p className="text-sm text-neutral-400 group-hover:text-neutral-300 transition-colors leading-relaxed">
+                                            {card.description}
+                                        </p>
+                                    </div>
+                                </motion.div>
+                            );
+                        })}
+                    </div>
 
                 </div>
             </div>
         </section>
     );
 }
+
