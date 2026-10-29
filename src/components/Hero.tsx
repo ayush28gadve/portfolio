@@ -28,44 +28,50 @@ export default function Hero() {
             className="relative min-h-[100dvh] w-full flex items-center overflow-hidden bg-[#030014]"
         >
             {/* Background Image Container */}
-            <div className="absolute inset-0 z-0 select-none pointer-events-none">
-                <Image
-                    src="/images/hero-portrait.png"
-                    alt="Ayush Gadve - Full-Stack Developer & AI Automation Specialist"
-                    fill
-                    priority
-                    quality={90}
-                    sizes="100vw"
-                    className="object-cover object-[72%_center] sm:object-[68%_center] md:object-[65%_center] lg:object-[60%_center] xl:object-right"
-                />
+            <div className="absolute inset-0 z-0 select-none pointer-events-none overflow-hidden">
+                {/* 
+                  Positioning: On tablet and desktop, anchor right and shift slightly off-screen to the right 
+                  so subject sits farther to the right, freeing up dark negative space on the left.
+                */}
+                <div className="absolute inset-0 w-full sm:w-[105%] md:w-[108%] lg:w-[110%] xl:w-[112%] sm:-right-[5%] md:-right-[8%] lg:-right-[10%] xl:-right-[12%] left-auto h-full">
+                    <Image
+                        src="/images/hero-portrait.png"
+                        alt="Ayush Gadve - Full-Stack Developer & AI Automation Specialist"
+                        fill
+                        priority
+                        quality={95}
+                        sizes="100vw"
+                        className="object-cover object-[75%_25%] sm:object-[78%_center] md:object-[79%_center] lg:object-[80%_center] xl:object-[82%_center]"
+                    />
+                </div>
 
-                {/* Left & Center Scrim: Rich Navy/Purple gradient behind the text for maximum legibility */}
-                <div className="absolute inset-0 bg-gradient-to-r from-[#030014] via-[#030014]/90 sm:via-[#030014]/80 md:via-[#030014]/65 lg:via-[#030014]/50 to-transparent" />
+                {/* Left & Center Scrim: Rich Navy/Purple gradient behind text, clearing completely before the face on desktop */}
+                <div className="absolute inset-0 bg-gradient-to-r from-[#030014] via-[#030014]/90 via-30% sm:via-40% md:via-[#030014]/80 md:via-45% lg:via-[#030014]/70 lg:via-48% to-transparent to-60% sm:to-65% md:to-70%" />
 
-                {/* Mobile Radial Darkening to ensure text pops over image elements on smaller screens */}
-                <div className="absolute inset-0 bg-radial-gradient sm:hidden bg-[#030014]/60" />
+                {/* Mobile Scrim: Balanced vertical fade to ensure high text contrast while keeping the portrait visible */}
+                <div className="absolute inset-0 sm:hidden bg-gradient-to-b from-[#030014]/85 via-[#030014]/70 to-[#030014]/95" />
 
                 {/* Top Vignette for Navbar legibility */}
-                <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#030014]/80 via-[#030014]/40 to-transparent" />
+                <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-[#030014]/85 via-[#030014]/40 to-transparent" />
 
                 {/* Bottom Smooth Transition into About section */}
-                <div className="absolute inset-x-0 bottom-0 h-32 md:h-44 bg-gradient-to-t from-[#030014] via-[#030014]/80 to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 h-24 md:h-36 bg-gradient-to-t from-[#030014] via-[#030014]/70 to-transparent" />
 
-                {/* Subtle Ambient Accent Glows (Cyan/Blue & Purple) */}
-                <div className="absolute -top-24 left-10 w-96 h-96 bg-primary/15 rounded-full blur-[120px] pointer-events-none" />
-                <div className="absolute bottom-1/4 left-1/4 w-80 h-80 bg-accent/15 rounded-full blur-[140px] pointer-events-none" />
+                {/* Subtle Ambient Glows - shifted left to not haze the face */}
+                <div className="absolute -top-24 left-4 w-80 h-80 bg-primary/10 rounded-full blur-[130px] pointer-events-none" />
+                <div className="absolute bottom-1/4 left-10 w-72 h-72 bg-accent/10 rounded-full blur-[130px] pointer-events-none" />
             </div>
 
             {/* Foreground Content */}
-            <div className="container relative z-10 mx-auto px-6 sm:px-8 md:px-12 lg:px-16 pt-24 pb-16 sm:py-28 md:py-32 flex items-center min-h-[100dvh]">
-                <div className="max-w-2xl lg:max-w-3xl">
+            <div className="container relative z-10 mx-auto px-6 sm:px-8 md:px-12 lg:px-16 pt-24 pb-8 sm:pt-28 sm:pb-10 md:pt-28 md:pb-12 flex items-center min-h-[100dvh]">
+                <div className="max-w-xl lg:max-w-[540px] xl:max-w-[580px]">
                     {/* Eyebrow Pill */}
                     <motion.div
                         custom={1}
                         variants={fadeInVariants}
                         initial="hidden"
                         animate="visible"
-                        className="mb-5 sm:mb-6"
+                        className="mb-4 sm:mb-5"
                     >
                         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-primary/30 bg-primary/10 backdrop-blur-md text-xs sm:text-sm font-semibold tracking-wider uppercase text-blue-300 shadow-[0_0_20px_rgba(59,130,246,0.15)]">
                             <span className="relative flex h-2 w-2">
@@ -82,10 +88,10 @@ export default function Hero() {
                         variants={fadeInVariants}
                         initial="hidden"
                         animate="visible"
-                        className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-white leading-[1.12] mb-6 drop-shadow-sm"
+                        className="text-[1.75rem] sm:text-4xl md:text-5xl lg:text-[3.25rem] xl:text-[3.65rem] font-black tracking-tight text-white leading-[1.15] sm:leading-[1.12] mb-5 drop-shadow-sm"
                     >
-                        I build digital experiences.{" "}
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400">
+                        <span>I build digital experiences.</span>{" "}
+                        <span className="block mt-1 sm:mt-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400">
                             I automate what slows businesses down.
                         </span>
                     </motion.h1>
@@ -96,7 +102,7 @@ export default function Hero() {
                         variants={fadeInVariants}
                         initial="hidden"
                         animate="visible"
-                        className="text-base sm:text-lg md:text-xl text-neutral-300/95 leading-relaxed max-w-xl mb-8 sm:mb-10 font-normal drop-shadow"
+                        className="text-base sm:text-lg text-neutral-300/95 leading-relaxed max-w-lg mb-7 sm:mb-8 font-normal drop-shadow"
                     >
                         I develop modern websites, full-stack applications, and AI-powered automations that turn complex workflows into practical digital solutions.
                     </motion.p>
@@ -107,11 +113,11 @@ export default function Hero() {
                         variants={fadeInVariants}
                         initial="hidden"
                         animate="visible"
-                        className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-5"
+                        className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4"
                     >
                         <Link
                             href="#contact"
-                            className="group inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-full bg-white text-black font-semibold text-base sm:text-lg hover:bg-neutral-200 transition-all duration-300 shadow-[0_0_25px_rgba(255,255,255,0.25)] hover:shadow-[0_0_35px_rgba(255,255,255,0.45)] hover:scale-[1.02] active:scale-[0.98]"
+                            className="group inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-full bg-white text-black font-semibold text-base hover:bg-neutral-200 transition-all duration-300 shadow-[0_0_25px_rgba(255,255,255,0.25)] hover:shadow-[0_0_35px_rgba(255,255,255,0.45)] hover:scale-[1.02] active:scale-[0.98]"
                         >
                             <span>Start a Project</span>
                             <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
@@ -119,7 +125,7 @@ export default function Hero() {
 
                         <Link
                             href="#projects"
-                            className="inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-full border border-white/20 bg-white/5 backdrop-blur-md text-white font-semibold text-base sm:text-lg hover:bg-white/10 hover:border-white/35 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                            className="inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-full border border-white/20 bg-white/5 backdrop-blur-md text-white font-semibold text-base hover:bg-white/10 hover:border-white/35 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
                         >
                             <span>Explore My Work</span>
                         </Link>
@@ -131,7 +137,7 @@ export default function Hero() {
                         variants={fadeInVariants}
                         initial="hidden"
                         animate="visible"
-                        className="mt-10 sm:mt-12 pt-6 sm:pt-8 border-t border-white/10 flex flex-wrap items-center gap-6 text-xs sm:text-sm text-neutral-400 font-medium"
+                        className="mt-8 sm:mt-9 pt-5 sm:pt-6 border-t border-white/10 flex flex-wrap items-center gap-5 sm:gap-6 text-xs sm:text-sm text-neutral-400 font-medium"
                     >
                         <div className="flex items-center gap-2">
                             <Code2 className="w-4 h-4 text-blue-400" />
