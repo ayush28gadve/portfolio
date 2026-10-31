@@ -1,19 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
     X,
     ExternalLink,
-    Sparkles,
     Bot,
     Globe,
     Layers,
     ArrowUpRight,
     ArrowRight,
-    ChevronDown,
-    ChevronUp,
-    SlidersHorizontal,
+    ChevronLeft,
+    ChevronRight,
+    Compass,
+    Sparkles,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -174,40 +174,140 @@ const categoryTabs = [
     { label: "Custom Software", count: projects.filter((p) => p.category === "Custom Software").length },
 ] as const;
 
-// Staggered vertical offsets inspired by the reference CSS nth-child layout
-const STAGGER_OFFSETS = [
-    "-translate-y-3",
-    "translate-y-6",
-    "-translate-y-6",
-    "translate-y-4",
-    "-translate-y-4",
-    "translate-y-5",
-    "-translate-y-2",
-    "translate-y-3",
-    "-translate-y-5",
-];
-
 export default function Projects() {
     const shouldReduceMotion = useReducedMotion();
     const [selectedCategory, setSelectedCategory] = useState<string>("All");
     const [selectedId, setSelectedId] = useState<number | null>(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [hoveredId, setHoveredId] = useState<number | null>(null);
-    const [showAll, setShowAll] = useState(false);
 
-    // Filter projects based on active category
+    // Active project pool according to selected category
     const filteredProjects = selectedCategory === "All"
         ? projects
         : projects.filter((p) => p.category === selectedCategory);
 
-    // Initial limit: 6 featured projects in the primary row, expand to all on toggle
-    const displayedProjects = selectedCategory === "All" && !showAll
-        ? filteredProjects.slice(0, 6)
-        : filteredProjects;
+    // -------------------------------------------------------------------------
+    // 3D CONCAVE CYLINDER GEOMETRY & DRAG PHYSICS
+    // -------------------------------------------------------------------------
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [rotation, setRotation] = useState(0);
+    const isDraggingRef = useRef(false);
+    const startXRef = useRef(0);
+    const startRotRef = useRef(0);
+    const dragDistanceRef = useRef(0);
+    const velocityRef = useRef(0);
+    const lastXRef = useRef(0);
+    const lastTimeRef = useRef(0);
+    const animFrameRef = useRef<number | null>(null);
+    const [isHoveredOverStage, setIsHoveredOverStage] = useState(false);
 
+    // Dynamic radius based on viewport width
+    const [cylinderRadius, setCylinderRadius] = useState(580);
+
+    useEffect(() => {
+        const updateRadius = () => {
+            if (window.innerWidth < 640) {
+                setCylinderRadius(360);
+            } else if (window.innerWidth < 1024) {
+                setCylinderRadius(480);
+            } else {
+                setCylinderRadius(580);
+            }
+        };
+        updateRadius();
+        window.addEventListener("resize", updateRadius);
+        return () => window.removeEventListener("resize", updateRadius);
+    }, []);
+
+    // Angular distribution: spacing between each card along the cylinder circumference
+    const totalItems = filteredProjects.length;
+    const angleStep = totalItems > 0 ? 360 / Math.max(totalItems, 6) : 60;
+
+    // Smooth continuous auto-drift: swift continuous round speed (approx 11-12 degrees per second)
+    useEffect(() => {
+        if (shouldReduceMotion) return;
+
+        let lastTimestamp = performance.now();
+        const loop = (time: number) => {
+            const dt = (time - lastTimestamp) / 1000;
+            lastTimestamp = time;
+
+            if (!isDraggingRef.current && !selectedId) {
+                // If hovered directly over a card, slow down to give time to click; otherwise spin at swift speed (~11.5 deg/s)
+                const speed = hoveredId !== null ? 2.5 : 11.5;
+                setRotation((prev) => prev - speed * dt);
+            }
+
+            animFrameRef.current = requestAnimationFrame(loop);
+        };
+
+        animFrameRef.current = requestAnimationFrame(loop);
+        return () => {
+            if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+        };
+    }, [hoveredId, selectedId, shouldReduceMotion]);
+
+    // Pointer events for intuitive drag / swipe around the concave wall
+    const handlePointerDown = (e: React.PointerEvent) => {
+        isDraggingRef.current = true;
+        startXRef.current = e.clientX;
+        startRotRef.current = rotation;
+        lastXRef.current = e.clientX;
+        lastTimeRef.current = performance.now();
+        dragDistanceRef.current = 0;
+        velocityRef.current = 0;
+    };
+
+    const handlePointerMove = (e: React.PointerEvent) => {
+        if (!isDraggingRef.current) return;
+        const deltaX = e.clientX - startXRef.current;
+        dragDistanceRef.current = Math.abs(deltaX);
+
+        // Responsive drag sensitivity: 0.22 degrees per pixel
+        const newRot = startRotRef.current + deltaX * 0.22;
+        setRotation(newRot);
+
+        const now = performance.now();
+        const dt = now - lastTimeRef.current;
+        if (dt > 10) {
+            velocityRef.current = (e.clientX - lastXRef.current) / dt;
+            lastXRef.current = e.clientX;
+            lastTimeRef.current = now;
+        }
+    };
+
+    const handlePointerUp = () => {
+        if (!isDraggingRef.current) return;
+        isDraggingRef.current = false;
+
+        // Apply momentum on release
+        if (Math.abs(velocityRef.current) > 0.3 && !shouldReduceMotion) {
+            const momentum = velocityRef.current * 16;
+            setRotation((prev) => prev + momentum);
+        }
+    };
+
+    const rotateBy = (deltaDeg: number) => {
+        setRotation((prev) => prev + deltaDeg);
+    };
+
+    // Keyboard navigation (Left / Right arrow keys)
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (selectedId) return;
+            if (e.key === "ArrowLeft") {
+                rotateBy(angleStep);
+            } else if (e.key === "ArrowRight") {
+                rotateBy(-angleStep);
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [angleStep, selectedId]);
+
+    // Modal scroll lock
     const selectedProject = projects.find((p) => p.id === selectedId);
 
-    // Strict Lock body scroll when modal is open
     useEffect(() => {
         if (selectedId) {
             document.body.style.setProperty("overflow", "hidden", "important");
@@ -226,7 +326,6 @@ export default function Projects() {
         };
     }, [selectedId]);
 
-    // Handle Escape key to close modal
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === "Escape") {
@@ -237,7 +336,6 @@ export default function Projects() {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, []);
 
-    // Reset image index when modal opens
     if (selectedId && selectedProject && currentImageIndex >= selectedProject.images.length) {
         setCurrentImageIndex(0);
     }
@@ -257,60 +355,59 @@ export default function Projects() {
     };
 
     return (
-        <section id="projects" className="relative py-28 md:py-36 px-4 sm:px-6 lg:px-8 overflow-hidden bg-[#030014]">
-            {/* Ambient Background with Cosmic Gradients */}
-            <div className="absolute -top-28 -right-20 w-[600px] h-[600px] bg-purple-600/15 rounded-full blur-[150px] opacity-40 mix-blend-screen pointer-events-none" />
-            <div className="absolute top-1/2 -left-28 w-[650px] h-[650px] bg-blue-600/15 rounded-full blur-[150px] opacity-35 mix-blend-screen pointer-events-none" />
-            <div className="absolute bottom-10 right-1/4 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[130px] opacity-30 pointer-events-none" />
+        <section
+            id="projects"
+            className="relative py-12 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-8 overflow-hidden bg-[#030014] select-none"
+        >
+            {/* Ambient Background Glows */}
+            <div className="absolute -top-32 -right-20 w-[450px] h-[450px] bg-purple-600/15 rounded-full blur-[140px] opacity-40 mix-blend-screen pointer-events-none" />
+            <div className="absolute top-1/2 -left-28 w-[450px] h-[450px] bg-blue-600/15 rounded-full blur-[140px] opacity-35 mix-blend-screen pointer-events-none" />
+            <div className="absolute bottom-6 right-1/4 w-[380px] h-[380px] bg-indigo-500/10 rounded-full blur-[120px] opacity-25 pointer-events-none" />
 
-            {/* Content Container */}
+            {/* Reflective Ground Glow */}
+            <div className="absolute bottom-4 inset-x-0 h-28 bg-gradient-to-t from-primary/10 via-accent/5 to-transparent blur-2xl pointer-events-none -z-10" />
+
             <div className="container mx-auto max-w-7xl relative z-10">
-                {/* Header Section */}
-                <div className="text-center max-w-3xl mx-auto mb-14 md:mb-20">
+                {/* Header */}
+                <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-8">
                     <motion.div
                         initial={shouldReduceMotion ? false : { opacity: 0, y: 15 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.5 }}
-                        className="mb-4 inline-block"
+                        className="mb-3 inline-block"
                     >
-                        <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-primary/30 bg-primary/10 backdrop-blur-md text-xs sm:text-sm font-semibold tracking-wider uppercase text-blue-300 shadow-[0_0_20px_rgba(59,130,246,0.15)]">
-                            <SlidersHorizontal className="w-3.5 h-3.5 text-blue-400" />
-                            INTERACTIVE EXPANDING SHOWCASE
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-primary/30 bg-primary/10 backdrop-blur-md text-[11px] sm:text-xs font-semibold tracking-wider uppercase text-blue-300 shadow-[0_0_15px_rgba(59,130,246,0.15)]">
+                            <Compass className="w-3 h-3 text-blue-400" />
+                            3D CONCAVE CYLINDER GALLERY
                         </span>
                     </motion.div>
 
                     <motion.h2
-                        initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+                        initial={shouldReduceMotion ? false : { opacity: 0, y: 15 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        transition={{ duration: 0.6, delay: 0.1 }}
-                        className="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight leading-[1.18] mb-5"
+                        transition={{ duration: 0.5, delay: 0.1 }}
+                        className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight leading-[1.2] mb-3"
                     >
                         Featured{" "}
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400">
-                            Projects & Case Studies
+                            Projects & 3D Wall
                         </span>
                     </motion.h2>
 
                     <motion.p
-                        initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6, delay: 0.2 }}
-                        className="text-base sm:text-lg text-neutral-300/90 leading-relaxed font-normal"
-                    >
-                        Hover over any project panel to expand it horizontally. Neighboring cards contract smoothly to reveal the active case study.
-                    </motion.p>
-
-                    {/* Category Filter Pills */}
-                    <motion.div
                         initial={shouldReduceMotion ? false : { opacity: 0, y: 15 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        transition={{ duration: 0.5, delay: 0.3 }}
-                        className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mt-8"
+                        transition={{ duration: 0.5, delay: 0.15 }}
+                        className="text-xs sm:text-sm text-neutral-300/85 leading-relaxed font-normal max-w-2xl mx-auto"
                     >
+                        A continuous gallery wall curving seamlessly around the viewer. Drag horizontally or click any project to inspect the case study.
+                    </motion.p>
+
+                    {/* Category Filter Pills */}
+                    <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 mt-5">
                         {categoryTabs.map((cat) => {
                             const isActive = selectedCategory === cat.label;
                             return (
@@ -318,18 +415,18 @@ export default function Projects() {
                                     key={cat.label}
                                     onClick={() => {
                                         setSelectedCategory(cat.label);
-                                        setShowAll(false);
+                                        setRotation(0);
                                         setHoveredId(null);
                                     }}
-                                    className={`flex items-center gap-2 px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 border ${
+                                    className={`flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 border ${
                                         isActive
-                                            ? "bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.25)] scale-105"
+                                            ? "bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.25)] scale-105"
                                             : "bg-white/5 text-neutral-300 border-white/10 hover:border-white/25 hover:text-white hover:bg-white/10"
                                     }`}
                                 >
                                     <span>{cat.label}</span>
                                     <span
-                                        className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${
+                                        className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
                                             isActive
                                                 ? "bg-black/15 text-black font-bold"
                                                 : "bg-white/10 text-neutral-400"
@@ -340,272 +437,192 @@ export default function Projects() {
                                 </button>
                             );
                         })}
-                    </motion.div>
+                    </div>
                 </div>
 
                 {/* ============================================================== */}
-                {/* HORIZONTAL EXPANDING FLEX CARDS GALLERY                        */}
-                {/* Desktop: Animated flexbox row where hovered card expands       */}
-                {/* Mobile: Touch-friendly horizontal swipe or responsive stack    */}
+                {/* 3D CONCAVE CYLINDRICAL STAGE (Balanced Medium Scale)           */}
                 {/* ============================================================== */}
                 <div
-                    onMouseLeave={() => setHoveredId(null)}
-                    className="hidden md:flex w-full h-[520px] lg:h-[580px] gap-3 lg:gap-4 items-stretch py-8"
+                    ref={containerRef}
+                    onPointerDown={handlePointerDown}
+                    onPointerMove={handlePointerMove}
+                    onPointerUp={handlePointerUp}
+                    onPointerCancel={handlePointerUp}
+                    onMouseEnter={() => setIsHoveredOverStage(true)}
+                    onMouseLeave={() => {
+                        setIsHoveredOverStage(false);
+                        handlePointerUp();
+                    }}
+                    className="relative w-full h-[370px] sm:h-[420px] md:h-[470px] flex items-center justify-center cursor-grab active:cursor-grabbing touch-pan-y"
+                    style={{
+                        perspective: "1300px",
+                        perspectiveOrigin: "50% 50%",
+                    }}
                 >
-                    {displayedProjects.map((project, index) => {
-                        const isHovered = hoveredId === project.id;
-                        const isAnyHovered = hoveredId !== null;
-                        const staggerClass = shouldReduceMotion ? "" : STAGGER_OFFSETS[index % STAGGER_OFFSETS.length];
+                    {/* Concave Carousel Hub */}
+                    <div
+                        style={{
+                            transformStyle: "preserve-3d",
+                            transform: `translateZ(-${cylinderRadius + 50}px) rotateY(${rotation}deg)`,
+                            transition: isDraggingRef.current ? "none" : "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+                        }}
+                        className="relative w-full h-full flex items-center justify-center pointer-events-none"
+                    >
+                        {filteredProjects.map((project, index) => {
+                            const cardAngle = index * angleStep;
+                            // Calculate current angle relative to camera front (0 deg = facing viewer)
+                            const netAngle = ((cardAngle + rotation) % 360 + 540) % 360 - 180;
+                            const isHovered = hoveredId === project.id;
 
-                        // Flexible width ratio:
-                        // When hovered, active card gets flex-[5] (~50-55% width).
-                        // Inactive cards contract to flex-[0.8] (~8-10% width).
-                        // When no card is hovered, all cards share equal flex-[1].
-                        const flexStyle = isHovered
-                            ? "flex-[5]"
-                            : isAnyHovered
-                            ? "flex-[0.8]"
-                            : "flex-[1]";
+                            // Scale & Opacity based on distance from front
+                            const distanceFactor = Math.cos((netAngle * Math.PI) / 180);
+                            const baseScale = Math.max(0.7, Math.min(1.0, 0.7 + distanceFactor * 0.3));
+                            const baseOpacity = Math.max(0.28, Math.min(1, 0.28 + distanceFactor * 0.72));
 
-                        // Opacity: active card 100%, inactive cards 35-40%, resting cards 90-100%
-                        const opacityStyle = isHovered
-                            ? "opacity-100"
-                            : isAnyHovered
-                            ? "opacity-35 hover:opacity-75"
-                            : "opacity-90 hover:opacity-100";
-
-                        // Vertical stagger resets to translate-y-0 when hovered
-                        const currentTransform = isHovered
-                            ? "translate-y-0 scale-[1.01]"
-                            : isAnyHovered
-                            ? `${staggerClass} scale-[0.98]`
-                            : staggerClass;
-
-                        return (
-                            <div
-                                key={project.id}
-                                onMouseEnter={() => setHoveredId(project.id)}
-                                onClick={() => {
-                                    setSelectedId(project.id);
-                                    setCurrentImageIndex(0);
-                                }}
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter" || e.key === " ") {
-                                        e.preventDefault();
-                                        setSelectedId(project.id);
-                                    }
-                                }}
-                                tabIndex={0}
-                                role="button"
-                                aria-label={`View ${project.title}`}
-                                style={{
-                                    transition: shouldReduceMotion
-                                        ? "opacity 300ms ease"
-                                        : "flex 700ms cubic-bezier(0.25, 1, 0.5, 1), transform 700ms cubic-bezier(0.25, 1, 0.5, 1), opacity 500ms ease, border-color 300ms ease",
-                                }}
-                                className={`group relative h-full rounded-2xl lg:rounded-3xl overflow-hidden cursor-pointer border select-none ${flexStyle} ${opacityStyle} ${currentTransform} ${
-                                    isHovered
-                                        ? "border-primary/60 shadow-[0_25px_60px_-10px_rgba(59,130,246,0.45)] z-30"
-                                        : "border-white/10 hover:border-white/25 shadow-[0_15px_35px_rgba(0,0,0,0.6)] z-10"
-                                } bg-[#07051a]`}
-                            >
-                                {/* Full-bleed Project Screenshot with Zoom on Hover */}
-                                <div className="absolute inset-0 w-full h-full">
-                                    <Image
-                                        src={project.images[0]}
-                                        alt={project.title}
-                                        fill
-                                        sizes="(max-width: 1200px) 70vw, 55vw"
-                                        className={`object-cover object-top transition-transform duration-700 ease-out ${
-                                            isHovered ? "scale-105" : "scale-100"
-                                        }`}
-                                    />
-                                    {/* Multi-stage gradient scrim for text legibility */}
-                                    <div
-                                        className={`absolute inset-0 bg-gradient-to-t from-[#030014] via-[#030014]/60 to-transparent transition-opacity duration-500 ${
-                                            isHovered ? "opacity-95" : "opacity-75"
-                                        }`}
-                                    />
-                                    {/* Subtle Glass Rim & Vignette */}
-                                    <div className="absolute inset-0 shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.2)] pointer-events-none" />
-                                </div>
-
-                                {/* ============================================================== */}
-                                {/* EXPANDED CARD STATE (Visible when this card is active)         */}
-                                {/* ============================================================== */}
+                            return (
                                 <div
-                                    className={`absolute inset-0 p-6 lg:p-8 flex flex-col justify-between z-20 transition-all duration-500 ${
-                                        isHovered
-                                            ? "opacity-100 pointer-events-auto delay-150"
-                                            : "opacity-0 pointer-events-none"
-                                    }`}
+                                    key={project.id}
+                                    style={{
+                                        position: "absolute",
+                                        transformStyle: "preserve-3d",
+                                        transform: `rotateY(${cardAngle}deg) translateZ(${cylinderRadius}px) scale(${
+                                            isHovered ? baseScale * 1.05 : baseScale
+                                        })`,
+                                        opacity: isHovered ? 1 : baseOpacity,
+                                        zIndex: isHovered ? 50 : Math.round(distanceFactor * 30) + 10,
+                                        transition: isDraggingRef.current
+                                            ? "opacity 0.2s ease"
+                                            : "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease",
+                                    }}
+                                    onMouseEnter={() => setHoveredId(project.id)}
+                                    onMouseLeave={() => setHoveredId(null)}
+                                    onClick={(e) => {
+                                        if (dragDistanceRef.current > 6) {
+                                            e.preventDefault();
+                                            return;
+                                        }
+                                        setSelectedId(project.id);
+                                        setCurrentImageIndex(0);
+                                    }}
+                                    className="pointer-events-auto w-[220px] sm:w-[265px] md:w-[305px] rounded-2xl p-3 sm:p-3.5 bg-[#07051a]/95 backdrop-blur-2xl border border-white/15 hover:border-primary/60 transition-colors shadow-[0_20px_45px_rgba(0,0,0,0.85)] flex flex-col justify-between cursor-pointer group"
                                 >
-                                    {/* Top Metadata Bar */}
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-black/75 backdrop-blur-md border border-white/20 text-neutral-200">
-                                                {project.category === "AI & Automation" && (
-                                                    <Bot className="w-3.5 h-3.5 text-purple-400" />
-                                                )}
-                                                {project.category === "Websites" && (
-                                                    <Globe className="w-3.5 h-3.5 text-blue-400" />
-                                                )}
-                                                {project.category === "Custom Software" && (
-                                                    <Layers className="w-3.5 h-3.5 text-indigo-400" />
-                                                )}
-                                                <span>{project.category}</span>
+                                    {/* Physical Bevel Rim */}
+                                    <div className="absolute inset-0 rounded-2xl pointer-events-none shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.25),inset_1px_0_1px_0_rgba(255,255,255,0.1)]" />
+
+                                    {/* Hover Ambient Glow */}
+                                    <div
+                                        className={`absolute -inset-1 rounded-[22px] bg-gradient-to-r from-blue-500/25 via-purple-500/20 to-indigo-500/25 blur-xl transition-opacity duration-300 pointer-events-none -z-10 ${
+                                            isHovered ? "opacity-100" : "opacity-0"
+                                        }`}
+                                    />
+
+                                    {/* Browser-styled Screenshot Frame */}
+                                    <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl bg-black/80 border border-white/10 mb-2.5 shadow-inner">
+                                        {/* Chrome top bar */}
+                                        <div className="absolute top-0 inset-x-0 h-5 px-2.5 bg-black/60 backdrop-blur-md border-b border-white/10 z-20 flex items-center justify-between">
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-red-400/80" />
+                                                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-yellow-400/80" />
+                                                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-400/80" />
+                                            </div>
+                                            <span className="text-[10px] font-mono text-neutral-400 truncate max-w-[120px] px-1.5 rounded bg-white/5 border border-white/5">
+                                                {project.highlight || project.category}
                                             </span>
-                                            {project.highlight && (
-                                                <span className="hidden sm:inline-block text-[11px] font-mono text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
-                                                    {project.highlight}
-                                                </span>
-                                            )}
+                                            <div className="w-4" />
                                         </div>
 
-                                        <span className="w-9 h-9 rounded-full bg-white text-black flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.6)]">
-                                            <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                                        </span>
+                                        <Image
+                                            src={project.images[0]}
+                                            alt={project.title}
+                                            fill
+                                            sizes="(max-width: 768px) 265px, 305px"
+                                            className="object-cover object-top pt-5 transition-transform duration-700 ease-out group-hover:scale-105"
+                                        />
+
+                                        {/* Vignette */}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-[#030014]/90 via-[#030014]/15 to-transparent opacity-70 group-hover:opacity-30 transition-opacity pointer-events-none" />
+
+                                        {/* Category Pill */}
+                                        <div className="absolute bottom-2 left-2 z-20">
+                                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-black/80 backdrop-blur-md border border-white/20 text-neutral-200 shadow-sm">
+                                                {project.category === "AI & Automation" && (
+                                                    <Bot className="w-3 h-3 text-purple-400" />
+                                                )}
+                                                {project.category === "Websites" && (
+                                                    <Globe className="w-3 h-3 text-blue-400" />
+                                                )}
+                                                {project.category === "Custom Software" && (
+                                                    <Layers className="w-3 h-3 text-indigo-400" />
+                                                )}
+                                                <span className="truncate max-w-[95px]">{project.category}</span>
+                                            </span>
+                                        </div>
+
+                                        {/* Quick View Button */}
+                                        <div className="absolute bottom-2 right-2 z-20 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all">
+                                            <span className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center shadow-md">
+                                                <ArrowUpRight className="w-3 h-3" />
+                                            </span>
+                                        </div>
                                     </div>
 
-                                    {/* Bottom Content Area */}
-                                    <div className="max-w-xl">
-                                        <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2 leading-tight tracking-tight drop-shadow-sm">
-                                            {project.title}
-                                        </h3>
-                                        <p className="text-xs sm:text-sm text-neutral-300/90 leading-relaxed mb-4 line-clamp-2">
-                                            {project.desc}
-                                        </p>
+                                    {/* Card Content */}
+                                    <div className="flex-1 flex flex-col justify-between">
+                                        <div>
+                                            <h3 className="text-sm sm:text-base font-bold text-white mb-1 group-hover:text-blue-300 transition-colors line-clamp-1 tracking-tight">
+                                                {project.title}
+                                            </h3>
+                                            <p className="text-xs text-neutral-300/85 line-clamp-2 leading-relaxed mb-2.5">
+                                                {project.desc}
+                                            </p>
+                                        </div>
 
-                                        {/* Tech Badges & CTA */}
-                                        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/10">
-                                            <div className="flex flex-wrap gap-1.5">
-                                                {project.tags.slice(0, 4).map((tag) => (
+                                        {/* Tags & Action Link */}
+                                        <div className="flex items-center justify-between gap-1.5 pt-2 border-t border-white/10 mt-auto">
+                                            <div className="flex flex-wrap gap-1">
+                                                {project.tags.slice(0, 2).map((tag) => (
                                                     <span
                                                         key={tag}
-                                                        className="px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-white/10 text-neutral-200 border border-white/10 backdrop-blur-sm"
+                                                        className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-white/5 text-neutral-400 border border-white/5 truncate max-w-[85px]"
                                                     >
                                                         {tag}
                                                     </span>
                                                 ))}
                                             </div>
-
-                                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-400 group-hover:text-blue-300 transition-colors">
-                                                <span>View Case Study</span>
-                                                <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-400 group-hover:text-blue-300 transition-colors shrink-0">
+                                                <span>View</span>
+                                                <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5" />
                                             </span>
                                         </div>
                                     </div>
                                 </div>
-
-                                {/* ============================================================== */}
-                                {/* CONTRACTED CARD STATE (Vertical label visible when not hovered) */}
-                                {/* ============================================================== */}
-                                <div
-                                    className={`absolute inset-0 p-4 flex flex-col justify-between items-center z-10 transition-opacity duration-300 ${
-                                        isHovered ? "opacity-0 pointer-events-none" : "opacity-100"
-                                    }`}
-                                >
-                                    {/* Top Number / Icon */}
-                                    <span className="text-[11px] font-mono text-neutral-400 px-2 py-0.5 rounded-full bg-black/60 border border-white/10 backdrop-blur-md">
-                                        0{index + 1}
-                                    </span>
-
-                                    {/* Vertical Rotated Project Title (Architectural Accordion Look) */}
-                                    <div className="flex-1 flex items-center justify-center my-4 overflow-hidden">
-                                        <span
-                                            style={{ writingMode: "vertical-rl" }}
-                                            className="text-xs lg:text-sm font-semibold tracking-wider text-neutral-300 whitespace-nowrap rotate-180 truncate max-h-[280px]"
-                                        >
-                                            {project.title.split("—")[0].trim()}
-                                        </span>
-                                    </div>
-
-                                    {/* Bottom Mini Category Icon */}
-                                    <div className="w-7 h-7 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-neutral-400">
-                                        {project.category === "AI & Automation" && <Bot className="w-3.5 h-3.5 text-purple-400" />}
-                                        {project.category === "Websites" && <Globe className="w-3.5 h-3.5 text-blue-400" />}
-                                        {project.category === "Custom Software" && <Layers className="w-3.5 h-3.5 text-indigo-400" />}
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-
-                {/* ============================================================== */}
-                {/* MOBILE / TABLET FALLBACK: Touch-Friendly Carousel Grid         */}
-                {/* ============================================================== */}
-                <div className="md:hidden flex flex-col gap-6">
-                    {displayedProjects.map((project, index) => (
-                        <div
-                            key={project.id}
-                            onClick={() => {
-                                setSelectedId(project.id);
-                                setCurrentImageIndex(0);
-                            }}
-                            className="group relative rounded-2xl overflow-hidden border border-white/10 bg-[#07051a] shadow-xl cursor-pointer"
-                        >
-                            <div className="relative aspect-[16/10] w-full">
-                                <Image
-                                    src={project.images[0]}
-                                    alt={project.title}
-                                    fill
-                                    className="object-cover object-top"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-[#030014] via-[#030014]/40 to-transparent" />
-                                <div className="absolute top-3 left-3">
-                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-black/75 backdrop-blur-md border border-white/15 text-neutral-200">
-                                        {project.category === "AI & Automation" && <Bot className="w-3 h-3 text-purple-400" />}
-                                        {project.category === "Websites" && <Globe className="w-3 h-3 text-blue-400" />}
-                                        {project.category === "Custom Software" && <Layers className="w-3 h-3 text-indigo-400" />}
-                                        <span>{project.category}</span>
-                                    </span>
-                                </div>
-                                <div className="absolute top-3 right-3">
-                                    <span className="w-7 h-7 rounded-full bg-white text-black flex items-center justify-center shadow-md">
-                                        <ArrowUpRight className="w-3.5 h-3.5" />
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="p-4">
-                                <h3 className="text-base font-bold text-white mb-1.5">{project.title}</h3>
-                                <p className="text-xs text-neutral-300/85 line-clamp-2 mb-3">{project.desc}</p>
-                                <div className="flex flex-wrap gap-1">
-                                    {project.tags.slice(0, 3).map((tag) => (
-                                        <span key={tag} className="px-2 py-0.5 rounded text-[10px] bg-white/5 border border-white/5 text-neutral-400">
-                                            {tag}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                {/* "View All Projects" / "Show Less" Expand Toggle */}
-                {selectedCategory === "All" && filteredProjects.length > 6 && (
-                    <div className="mt-14 text-center">
-                        <button
-                            onClick={() => {
-                                setShowAll((prev) => !prev);
-                                setHoveredId(null);
-                            }}
-                            className="group inline-flex items-center gap-2.5 px-7 py-3.5 rounded-full border border-white/15 bg-white/[0.04] backdrop-blur-md text-sm font-semibold text-white hover:bg-white/10 hover:border-white/30 transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.06)] hover:shadow-[0_0_30px_rgba(255,255,255,0.15)] active:scale-95"
-                        >
-                            {showAll ? (
-                                <>
-                                    <span>Show Less Featured Projects</span>
-                                    <ChevronUp className="w-4 h-4 transition-transform group-hover:-translate-y-0.5 text-blue-400" />
-                                </>
-                            ) : (
-                                <>
-                                    <span>View All Projects ({filteredProjects.length})</span>
-                                    <ChevronDown className="w-4 h-4 transition-transform group-hover:translate-y-0.5 text-blue-400" />
-                                </>
-                            )}
-                        </button>
+                            );
+                        })}
                     </div>
-                )}
+
+                    {/* Navigation Arrows on Left and Right of Concave Wall */}
+                    <button
+                        onClick={() => rotateBy(angleStep)}
+                        className="absolute left-1 sm:left-4 z-40 p-2.5 sm:p-3 rounded-full bg-black/60 hover:bg-white/20 text-white backdrop-blur-md border border-white/15 transition-all hover:scale-110 shadow-lg"
+                        aria-label="Rotate left"
+                    >
+                        <ChevronLeft className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
+                    </button>
+                    <button
+                        onClick={() => rotateBy(-angleStep)}
+                        className="absolute right-1 sm:right-4 z-40 p-2.5 sm:p-3 rounded-full bg-black/60 hover:bg-white/20 text-white backdrop-blur-md border border-white/15 transition-all hover:scale-110 shadow-lg"
+                        aria-label="Rotate right"
+                    >
+                        <ChevronRight className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
+                    </button>
+                </div>
+
+                {/* Drag Guidance Cue */}
+                <div className="text-center mt-3 text-[11px] text-neutral-400 flex items-center justify-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                    <span>Drag horizontally or use arrow keys (← / →) to rotate the 3D gallery wall</span>
+                </div>
 
                 {/* Polished Project Detail Modal */}
                 <AnimatePresence>
