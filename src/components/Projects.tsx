@@ -1,8 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { X, ExternalLink, Sparkles, Bot, Globe, Layers, ArrowUpRight } from "lucide-react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import {
+    X,
+    ExternalLink,
+    Sparkles,
+    Bot,
+    Globe,
+    Layers,
+    ArrowUpRight,
+    ArrowRight,
+    ChevronDown,
+    ChevronUp,
+    SlidersHorizontal,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -31,7 +43,7 @@ The system updates internal CRMs automatically, sends 24-hour reminder notificat
         images: ["/projects/aiva-ai.jpg"],
         tags: ["AI Agents", "WhatsApp API", "n8n Automation", "CRM Sync", "Next.js"],
         highlight: "Automated Appointments on WhatsApp",
-        link: "#contact"
+        link: "#contact",
     },
     {
         id: 2,
@@ -44,7 +56,7 @@ Even while business owners are asleep, TuitionFlow autonomously qualifies intere
         images: ["/projects/tuitionflow-ai.jpg"],
         tags: ["Generative AI", "LLM Orchestration", "Lead Capture", "Next.js", "CRM Integration"],
         highlight: "24/7 Lead Qualification & CRM Sync",
-        link: "#contact"
+        link: "#contact",
     },
     {
         id: 3,
@@ -57,7 +69,7 @@ The website was architected to bridge offline brand legacy with digital conversi
         images: ["/projects/akshay-computers.jpg"],
         tags: ["Next.js", "Business Website", "Tailwind CSS", "WhatsApp Integration", "SEO"],
         highlight: "Trusted for 35+ Years",
-        link: "#contact"
+        link: "#contact",
     },
     {
         id: 4,
@@ -70,7 +82,7 @@ The platform features an intuitive configuration workspace where students specif
         images: ["/projects/concept-twin.png"],
         tags: ["React.js", "TypeScript", "EdTech Platform", "Interactive Simulations", "State Management"],
         highlight: "Adaptive Conceptual Mastery Engine",
-        link: "#contact"
+        link: "#contact",
     },
     {
         id: 5,
@@ -83,7 +95,7 @@ The website combines warm, minimalist typography with an authentic cultural visu
         images: ["/projects/sanskrit-shloka.jpg"],
         tags: ["Web Development", "UI/UX Design", "Course Enrollment", "Branding", "Responsive Web"],
         highlight: "Ancient Wisdom · Modern Living",
-        link: "#contact"
+        link: "#contact",
     },
     {
         id: 6,
@@ -100,11 +112,11 @@ CityPulse integrates AI and machine learning to intelligently classify complaint
             "/projects/citypulse-2.png",
             "/projects/citypulse-3.png",
             "/projects/citypulse-4.png",
-            "/projects/citypulse-5.png"
+            "/projects/citypulse-5.png",
         ],
         tags: ["React.js", "Node.js", "MongoDB", "AI/ML", "Google Maps API"],
         highlight: "AI-Powered Civic Infrastructure",
-        link: "#contact"
+        link: "#contact",
     },
     {
         id: 7,
@@ -120,11 +132,11 @@ With role-based access, HealthTech ensures data privacy and controlled informati
             "/projects/healthtech-1.png",
             "/projects/healthtech-2.png",
             "/projects/healthtech-3.png",
-            "/projects/healthtech-4.png"
+            "/projects/healthtech-4.png",
         ],
         tags: ["React.js", "Node.js", "MongoDB", "Express.js", "TailwindCSS"],
         highlight: "Secure Healthcare System",
-        link: "#contact"
+        link: "#contact",
     },
     {
         id: 8,
@@ -136,11 +148,11 @@ With role-based access, HealthTech ensures data privacy and controlled informati
 Using data-driven insights, the system creates personalized meal plans tailored to individual needs, helping users make better dietary decisions. The application continuously tracks user progress, allowing users to monitor their nutritional journey and adjust plans based on changing goals.`,
         images: [
             "/projects/nutrition-planner-1.png",
-            "/projects/nutrition-planner-2.png"
+            "/projects/nutrition-planner-2.png",
         ],
         tags: ["React.js", "Node.js", "MongoDB", "Express.js", "AI/ML"],
         highlight: "AI-Powered Diet Insights",
-        link: "#contact"
+        link: "#contact",
     },
     {
         id: 9,
@@ -151,22 +163,49 @@ Using data-driven insights, the system creates personalized meal plans tailored 
         images: ["/projects/smart-complaint-sorter.png"],
         tags: ["React.js", "Node.js", "MongoDB", "Express.js"],
         highlight: "Automated Ticket Triage",
-        link: "#contact"
-    }
+        link: "#contact",
+    },
 ];
 
-const categories = ["All", "AI & Automation", "Websites", "Custom Software"] as const;
+const categoryTabs = [
+    { label: "All", count: projects.length },
+    { label: "AI & Automation", count: projects.filter((p) => p.category === "AI & Automation").length },
+    { label: "Websites", count: projects.filter((p) => p.category === "Websites").length },
+    { label: "Custom Software", count: projects.filter((p) => p.category === "Custom Software").length },
+] as const;
+
+// Staggered vertical offsets inspired by the reference CSS nth-child layout
+const STAGGER_OFFSETS = [
+    "-translate-y-3",
+    "translate-y-6",
+    "-translate-y-6",
+    "translate-y-4",
+    "-translate-y-4",
+    "translate-y-5",
+    "-translate-y-2",
+    "translate-y-3",
+    "-translate-y-5",
+];
 
 export default function Projects() {
+    const shouldReduceMotion = useReducedMotion();
     const [selectedCategory, setSelectedCategory] = useState<string>("All");
     const [selectedId, setSelectedId] = useState<number | null>(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [hoveredId, setHoveredId] = useState<number | null>(null);
+    const [showAll, setShowAll] = useState(false);
 
+    // Filter projects based on active category
     const filteredProjects = selectedCategory === "All"
         ? projects
-        : projects.filter(p => p.category === selectedCategory);
+        : projects.filter((p) => p.category === selectedCategory);
 
-    const selectedProject = projects.find(p => p.id === selectedId);
+    // Initial limit: 6 featured projects in the primary row, expand to all on toggle
+    const displayedProjects = selectedCategory === "All" && !showAll
+        ? filteredProjects.slice(0, 6)
+        : filteredProjects;
+
+    const selectedProject = projects.find((p) => p.id === selectedId);
 
     // Strict Lock body scroll when modal is open
     useEffect(() => {
@@ -186,6 +225,17 @@ export default function Projects() {
             document.documentElement.style.overflow = "unset";
         };
     }, [selectedId]);
+
+    // Handle Escape key to close modal
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                setSelectedId(null);
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, []);
 
     // Reset image index when modal opens
     if (selectedId && selectedProject && currentImageIndex >= selectedProject.images.length) {
@@ -207,31 +257,31 @@ export default function Projects() {
     };
 
     return (
-        <section id="projects" className="relative py-28 md:py-32 px-6 overflow-hidden bg-[#030014]">
-            {/* Ambient Background with Premium Gradients */}
-            <div className="absolute -top-20 -right-20 w-[550px] h-[550px] bg-purple-600/15 rounded-full blur-[140px] opacity-40 mix-blend-screen pointer-events-none" />
-            <div className="absolute top-1/2 -left-20 w-[600px] h-[600px] bg-blue-600/15 rounded-full blur-[140px] opacity-30 mix-blend-screen pointer-events-none" />
-            <div className="absolute bottom-0 right-1/3 w-[450px] h-[450px] bg-indigo-500/10 rounded-full blur-[120px] opacity-30 pointer-events-none" />
+        <section id="projects" className="relative py-28 md:py-36 px-4 sm:px-6 lg:px-8 overflow-hidden bg-[#030014]">
+            {/* Ambient Background with Cosmic Gradients */}
+            <div className="absolute -top-28 -right-20 w-[600px] h-[600px] bg-purple-600/15 rounded-full blur-[150px] opacity-40 mix-blend-screen pointer-events-none" />
+            <div className="absolute top-1/2 -left-28 w-[650px] h-[650px] bg-blue-600/15 rounded-full blur-[150px] opacity-35 mix-blend-screen pointer-events-none" />
+            <div className="absolute bottom-10 right-1/4 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[130px] opacity-30 pointer-events-none" />
 
             {/* Content Container */}
-            <div className="container mx-auto max-w-6xl relative z-10">
-                {/* Header */}
-                <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
+            <div className="container mx-auto max-w-7xl relative z-10">
+                {/* Header Section */}
+                <div className="text-center max-w-3xl mx-auto mb-14 md:mb-20">
                     <motion.div
-                        initial={{ opacity: 0, y: 15 }}
+                        initial={shouldReduceMotion ? false : { opacity: 0, y: 15 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.5 }}
                         className="mb-4 inline-block"
                     >
                         <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-primary/30 bg-primary/10 backdrop-blur-md text-xs sm:text-sm font-semibold tracking-wider uppercase text-blue-300 shadow-[0_0_20px_rgba(59,130,246,0.15)]">
-                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                            PORTFOLIO SHOWCASE
+                            <SlidersHorizontal className="w-3.5 h-3.5 text-blue-400" />
+                            INTERACTIVE EXPANDING SHOWCASE
                         </span>
                     </motion.div>
 
                     <motion.h2
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.6, delay: 0.1 }}
@@ -244,130 +294,324 @@ export default function Projects() {
                     </motion.h2>
 
                     <motion.p
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.6, delay: 0.2 }}
                         className="text-base sm:text-lg text-neutral-300/90 leading-relaxed font-normal"
                     >
-                        Real client websites, AI automation agents, and custom web applications built for business impact, lead conversion, and operational speed.
+                        Hover over any project panel to expand it horizontally. Neighboring cards contract smoothly to reveal the active case study.
                     </motion.p>
 
                     {/* Category Filter Pills */}
                     <motion.div
-                        initial={{ opacity: 0, y: 15 }}
+                        initial={shouldReduceMotion ? false : { opacity: 0, y: 15 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.5, delay: 0.3 }}
                         className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mt-8"
                     >
-                        {categories.map((cat) => {
-                            const isActive = selectedCategory === cat;
+                        {categoryTabs.map((cat) => {
+                            const isActive = selectedCategory === cat.label;
                             return (
                                 <button
-                                    key={cat}
-                                    onClick={() => setSelectedCategory(cat)}
-                                    className={`px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 border ${
+                                    key={cat.label}
+                                    onClick={() => {
+                                        setSelectedCategory(cat.label);
+                                        setShowAll(false);
+                                        setHoveredId(null);
+                                    }}
+                                    className={`flex items-center gap-2 px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 border ${
                                         isActive
-                                            ? "bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.3)] scale-105"
+                                            ? "bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.25)] scale-105"
                                             : "bg-white/5 text-neutral-300 border-white/10 hover:border-white/25 hover:text-white hover:bg-white/10"
                                     }`}
                                 >
-                                    {cat}
+                                    <span>{cat.label}</span>
+                                    <span
+                                        className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${
+                                            isActive
+                                                ? "bg-black/15 text-black font-bold"
+                                                : "bg-white/10 text-neutral-400"
+                                        }`}
+                                    >
+                                        {cat.count}
+                                    </span>
                                 </button>
                             );
                         })}
                     </motion.div>
                 </div>
 
-                {/* Projects Grid */}
-                <motion.div
-                    layout
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
+                {/* ============================================================== */}
+                {/* HORIZONTAL EXPANDING FLEX CARDS GALLERY                        */}
+                {/* Desktop: Animated flexbox row where hovered card expands       */}
+                {/* Mobile: Touch-friendly horizontal swipe or responsive stack    */}
+                {/* ============================================================== */}
+                <div
+                    onMouseLeave={() => setHoveredId(null)}
+                    className="hidden md:flex w-full h-[520px] lg:h-[580px] gap-3 lg:gap-4 items-stretch py-8"
                 >
-                    <AnimatePresence>
-                        {filteredProjects.map((project) => (
-                            <motion.div
-                                key={project.id}
-                                layout
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
-                                transition={{ duration: 0.4 }}
-                                onClick={() => { setSelectedId(project.id); setCurrentImageIndex(0); }}
-                                whileHover={{ y: -6 }}
-                                className="group relative cursor-pointer flex flex-col h-full rounded-2xl sm:rounded-3xl bg-white/[0.03] border border-white/10 hover:border-primary/50 transition-all duration-300 overflow-hidden backdrop-blur-md"
-                            >
-                                {/* Card Glow Effect */}
-                                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                    {displayedProjects.map((project, index) => {
+                        const isHovered = hoveredId === project.id;
+                        const isAnyHovered = hoveredId !== null;
+                        const staggerClass = shouldReduceMotion ? "" : STAGGER_OFFSETS[index % STAGGER_OFFSETS.length];
 
-                                {/* Project Image with Browser Mockup Aspect Ratio */}
-                                <div className="relative aspect-[16/10] w-full overflow-hidden bg-black/40 border-b border-white/10">
+                        // Flexible width ratio:
+                        // When hovered, active card gets flex-[5] (~50-55% width).
+                        // Inactive cards contract to flex-[0.8] (~8-10% width).
+                        // When no card is hovered, all cards share equal flex-[1].
+                        const flexStyle = isHovered
+                            ? "flex-[5]"
+                            : isAnyHovered
+                            ? "flex-[0.8]"
+                            : "flex-[1]";
+
+                        // Opacity: active card 100%, inactive cards 35-40%, resting cards 90-100%
+                        const opacityStyle = isHovered
+                            ? "opacity-100"
+                            : isAnyHovered
+                            ? "opacity-35 hover:opacity-75"
+                            : "opacity-90 hover:opacity-100";
+
+                        // Vertical stagger resets to translate-y-0 when hovered
+                        const currentTransform = isHovered
+                            ? "translate-y-0 scale-[1.01]"
+                            : isAnyHovered
+                            ? `${staggerClass} scale-[0.98]`
+                            : staggerClass;
+
+                        return (
+                            <div
+                                key={project.id}
+                                onMouseEnter={() => setHoveredId(project.id)}
+                                onClick={() => {
+                                    setSelectedId(project.id);
+                                    setCurrentImageIndex(0);
+                                }}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" || e.key === " ") {
+                                        e.preventDefault();
+                                        setSelectedId(project.id);
+                                    }
+                                }}
+                                tabIndex={0}
+                                role="button"
+                                aria-label={`View ${project.title}`}
+                                style={{
+                                    transition: shouldReduceMotion
+                                        ? "opacity 300ms ease"
+                                        : "flex 700ms cubic-bezier(0.25, 1, 0.5, 1), transform 700ms cubic-bezier(0.25, 1, 0.5, 1), opacity 500ms ease, border-color 300ms ease",
+                                }}
+                                className={`group relative h-full rounded-2xl lg:rounded-3xl overflow-hidden cursor-pointer border select-none ${flexStyle} ${opacityStyle} ${currentTransform} ${
+                                    isHovered
+                                        ? "border-primary/60 shadow-[0_25px_60px_-10px_rgba(59,130,246,0.45)] z-30"
+                                        : "border-white/10 hover:border-white/25 shadow-[0_15px_35px_rgba(0,0,0,0.6)] z-10"
+                                } bg-[#07051a]`}
+                            >
+                                {/* Full-bleed Project Screenshot with Zoom on Hover */}
+                                <div className="absolute inset-0 w-full h-full">
                                     <Image
                                         src={project.images[0]}
                                         alt={project.title}
                                         fill
-                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                        className="object-cover object-top transition-transform duration-700 group-hover:scale-105"
+                                        sizes="(max-width: 1200px) 70vw, 55vw"
+                                        className={`object-cover object-top transition-transform duration-700 ease-out ${
+                                            isHovered ? "scale-105" : "scale-100"
+                                        }`}
                                     />
-                                    {/* Gradient overlay to ensure card text readability */}
-                                    <div className="absolute inset-0 bg-gradient-to-t from-[#030014] via-[#030014]/20 to-transparent opacity-80 group-hover:opacity-60 transition-opacity" />
-
-                                    {/* Category Pill Tag */}
-                                    <div className="absolute top-3 left-3 z-20">
-                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-black/70 backdrop-blur-md border border-white/15 text-neutral-200">
-                                            {project.category === "AI & Automation" && <Bot className="w-3 h-3 text-purple-400" />}
-                                            {project.category === "Websites" && <Globe className="w-3 h-3 text-blue-400" />}
-                                            {project.category === "Custom Software" && <Layers className="w-3 h-3 text-indigo-400" />}
-                                            <span>{project.category}</span>
-                                        </span>
-                                    </div>
-
-                                    {/* Quick View Button on Hover */}
-                                    <div className="absolute top-3 right-3 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <span className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white">
-                                            <ArrowUpRight className="w-4 h-4" />
-                                        </span>
-                                    </div>
+                                    {/* Multi-stage gradient scrim for text legibility */}
+                                    <div
+                                        className={`absolute inset-0 bg-gradient-to-t from-[#030014] via-[#030014]/60 to-transparent transition-opacity duration-500 ${
+                                            isHovered ? "opacity-95" : "opacity-75"
+                                        }`}
+                                    />
+                                    {/* Subtle Glass Rim & Vignette */}
+                                    <div className="absolute inset-0 shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.2)] pointer-events-none" />
                                 </div>
 
-                                {/* Content Details */}
-                                <div className="p-5 sm:p-6 flex flex-col flex-1 justify-between relative z-10">
-                                    <div>
-                                        <h3 className="text-lg sm:text-xl font-bold text-white mb-2 group-hover:text-blue-300 transition-colors line-clamp-1">
+                                {/* ============================================================== */}
+                                {/* EXPANDED CARD STATE (Visible when this card is active)         */}
+                                {/* ============================================================== */}
+                                <div
+                                    className={`absolute inset-0 p-6 lg:p-8 flex flex-col justify-between z-20 transition-all duration-500 ${
+                                        isHovered
+                                            ? "opacity-100 pointer-events-auto delay-150"
+                                            : "opacity-0 pointer-events-none"
+                                    }`}
+                                >
+                                    {/* Top Metadata Bar */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-black/75 backdrop-blur-md border border-white/20 text-neutral-200">
+                                                {project.category === "AI & Automation" && (
+                                                    <Bot className="w-3.5 h-3.5 text-purple-400" />
+                                                )}
+                                                {project.category === "Websites" && (
+                                                    <Globe className="w-3.5 h-3.5 text-blue-400" />
+                                                )}
+                                                {project.category === "Custom Software" && (
+                                                    <Layers className="w-3.5 h-3.5 text-indigo-400" />
+                                                )}
+                                                <span>{project.category}</span>
+                                            </span>
+                                            {project.highlight && (
+                                                <span className="hidden sm:inline-block text-[11px] font-mono text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
+                                                    {project.highlight}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <span className="w-9 h-9 rounded-full bg-white text-black flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.6)]">
+                                            <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                                        </span>
+                                    </div>
+
+                                    {/* Bottom Content Area */}
+                                    <div className="max-w-xl">
+                                        <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2 leading-tight tracking-tight drop-shadow-sm">
                                             {project.title}
                                         </h3>
-                                        <p className="text-xs sm:text-sm text-neutral-300/85 line-clamp-2 leading-relaxed mb-4">
+                                        <p className="text-xs sm:text-sm text-neutral-300/90 leading-relaxed mb-4 line-clamp-2">
                                             {project.desc}
                                         </p>
-                                    </div>
 
-                                    {/* Tags */}
-                                    <div className="flex flex-wrap gap-1.5 pt-3 border-t border-white/5">
-                                        {project.tags.slice(0, 3).map((tag) => (
-                                            <span
-                                                key={tag}
-                                                className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-white/5 text-neutral-400 border border-white/5"
-                                            >
-                                                {tag}
+                                        {/* Tech Badges & CTA */}
+                                        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/10">
+                                            <div className="flex flex-wrap gap-1.5">
+                                                {project.tags.slice(0, 4).map((tag) => (
+                                                    <span
+                                                        key={tag}
+                                                        className="px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-white/10 text-neutral-200 border border-white/10 backdrop-blur-sm"
+                                                    >
+                                                        {tag}
+                                                    </span>
+                                                ))}
+                                            </div>
+
+                                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-400 group-hover:text-blue-300 transition-colors">
+                                                <span>View Case Study</span>
+                                                <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
                                             </span>
-                                        ))}
-                                        {project.tags.length > 3 && (
-                                            <span className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-white/5 text-neutral-500">
-                                                +{project.tags.length - 3}
-                                            </span>
-                                        )}
+                                        </div>
                                     </div>
                                 </div>
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
-                </motion.div>
 
-                {/* Modal Detail View */}
+                                {/* ============================================================== */}
+                                {/* CONTRACTED CARD STATE (Vertical label visible when not hovered) */}
+                                {/* ============================================================== */}
+                                <div
+                                    className={`absolute inset-0 p-4 flex flex-col justify-between items-center z-10 transition-opacity duration-300 ${
+                                        isHovered ? "opacity-0 pointer-events-none" : "opacity-100"
+                                    }`}
+                                >
+                                    {/* Top Number / Icon */}
+                                    <span className="text-[11px] font-mono text-neutral-400 px-2 py-0.5 rounded-full bg-black/60 border border-white/10 backdrop-blur-md">
+                                        0{index + 1}
+                                    </span>
+
+                                    {/* Vertical Rotated Project Title (Architectural Accordion Look) */}
+                                    <div className="flex-1 flex items-center justify-center my-4 overflow-hidden">
+                                        <span
+                                            style={{ writingMode: "vertical-rl" }}
+                                            className="text-xs lg:text-sm font-semibold tracking-wider text-neutral-300 whitespace-nowrap rotate-180 truncate max-h-[280px]"
+                                        >
+                                            {project.title.split("—")[0].trim()}
+                                        </span>
+                                    </div>
+
+                                    {/* Bottom Mini Category Icon */}
+                                    <div className="w-7 h-7 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-neutral-400">
+                                        {project.category === "AI & Automation" && <Bot className="w-3.5 h-3.5 text-purple-400" />}
+                                        {project.category === "Websites" && <Globe className="w-3.5 h-3.5 text-blue-400" />}
+                                        {project.category === "Custom Software" && <Layers className="w-3.5 h-3.5 text-indigo-400" />}
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                {/* ============================================================== */}
+                {/* MOBILE / TABLET FALLBACK: Touch-Friendly Carousel Grid         */}
+                {/* ============================================================== */}
+                <div className="md:hidden flex flex-col gap-6">
+                    {displayedProjects.map((project, index) => (
+                        <div
+                            key={project.id}
+                            onClick={() => {
+                                setSelectedId(project.id);
+                                setCurrentImageIndex(0);
+                            }}
+                            className="group relative rounded-2xl overflow-hidden border border-white/10 bg-[#07051a] shadow-xl cursor-pointer"
+                        >
+                            <div className="relative aspect-[16/10] w-full">
+                                <Image
+                                    src={project.images[0]}
+                                    alt={project.title}
+                                    fill
+                                    className="object-cover object-top"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-[#030014] via-[#030014]/40 to-transparent" />
+                                <div className="absolute top-3 left-3">
+                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-black/75 backdrop-blur-md border border-white/15 text-neutral-200">
+                                        {project.category === "AI & Automation" && <Bot className="w-3 h-3 text-purple-400" />}
+                                        {project.category === "Websites" && <Globe className="w-3 h-3 text-blue-400" />}
+                                        {project.category === "Custom Software" && <Layers className="w-3 h-3 text-indigo-400" />}
+                                        <span>{project.category}</span>
+                                    </span>
+                                </div>
+                                <div className="absolute top-3 right-3">
+                                    <span className="w-7 h-7 rounded-full bg-white text-black flex items-center justify-center shadow-md">
+                                        <ArrowUpRight className="w-3.5 h-3.5" />
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="p-4">
+                                <h3 className="text-base font-bold text-white mb-1.5">{project.title}</h3>
+                                <p className="text-xs text-neutral-300/85 line-clamp-2 mb-3">{project.desc}</p>
+                                <div className="flex flex-wrap gap-1">
+                                    {project.tags.slice(0, 3).map((tag) => (
+                                        <span key={tag} className="px-2 py-0.5 rounded text-[10px] bg-white/5 border border-white/5 text-neutral-400">
+                                            {tag}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* "View All Projects" / "Show Less" Expand Toggle */}
+                {selectedCategory === "All" && filteredProjects.length > 6 && (
+                    <div className="mt-14 text-center">
+                        <button
+                            onClick={() => {
+                                setShowAll((prev) => !prev);
+                                setHoveredId(null);
+                            }}
+                            className="group inline-flex items-center gap-2.5 px-7 py-3.5 rounded-full border border-white/15 bg-white/[0.04] backdrop-blur-md text-sm font-semibold text-white hover:bg-white/10 hover:border-white/30 transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.06)] hover:shadow-[0_0_30px_rgba(255,255,255,0.15)] active:scale-95"
+                        >
+                            {showAll ? (
+                                <>
+                                    <span>Show Less Featured Projects</span>
+                                    <ChevronUp className="w-4 h-4 transition-transform group-hover:-translate-y-0.5 text-blue-400" />
+                                </>
+                            ) : (
+                                <>
+                                    <span>View All Projects ({filteredProjects.length})</span>
+                                    <ChevronDown className="w-4 h-4 transition-transform group-hover:translate-y-0.5 text-blue-400" />
+                                </>
+                            )}
+                        </button>
+                    </div>
+                )}
+
+                {/* Polished Project Detail Modal */}
                 <AnimatePresence>
                     {selectedId && selectedProject && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-8">
+                            {/* Backdrop with Blur */}
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
@@ -375,6 +619,8 @@ export default function Projects() {
                                 onClick={() => setSelectedId(null)}
                                 className="absolute inset-0 bg-black/85 backdrop-blur-md"
                             />
+
+                            {/* Modal Card */}
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -388,14 +634,18 @@ export default function Projects() {
 
                                 {/* Close Button */}
                                 <button
-                                    onClick={(e) => { e.stopPropagation(); setSelectedId(null); }}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedId(null);
+                                    }}
                                     className="absolute top-4 right-4 p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white z-50 transition-colors border border-white/10 backdrop-blur-md"
+                                    aria-label="Close case study modal"
                                 >
                                     <X className="w-5 h-5" />
                                 </button>
 
                                 {/* Left Side: Image Gallery */}
-                                <div className="md:col-span-7 relative min-h-[260px] sm:min-h-[320px] md:min-h-full bg-black/60 flex items-center justify-center overflow-hidden border-b md:border-b-0 md:border-r border-white/10">
+                                <div className="md:col-span-7 relative min-h-[260px] sm:min-h-[320px] md:min-h-full bg-black/75 flex items-center justify-center overflow-hidden border-b md:border-b-0 md:border-r border-white/10">
                                     <div className="relative w-full h-full p-4 sm:p-6 flex items-center justify-center">
                                         <Image
                                             src={selectedProject.images[currentImageIndex]}
@@ -412,12 +662,14 @@ export default function Projects() {
                                             <button
                                                 onClick={prevImage}
                                                 className="absolute left-3 p-2 rounded-full bg-black/60 hover:bg-white/20 text-white transition-all z-10 border border-white/10"
+                                                aria-label="Previous image"
                                             >
                                                 ←
                                             </button>
                                             <button
                                                 onClick={nextImage}
                                                 className="absolute right-3 p-2 rounded-full bg-black/60 hover:bg-white/20 text-white transition-all z-10 border border-white/10"
+                                                aria-label="Next image"
                                             >
                                                 →
                                             </button>
@@ -425,7 +677,9 @@ export default function Projects() {
                                                 {selectedProject.images.map((_, idx) => (
                                                     <div
                                                         key={idx}
-                                                        className={`w-2 h-2 rounded-full transition-colors ${idx === currentImageIndex ? 'bg-primary' : 'bg-white/30'}`}
+                                                        className={`w-2 h-2 rounded-full transition-colors ${
+                                                            idx === currentImageIndex ? "bg-primary" : "bg-white/30"
+                                                        }`}
                                                     />
                                                 ))}
                                             </div>
@@ -467,8 +721,11 @@ export default function Projects() {
                                                 Technologies & Integrations
                                             </h4>
                                             <div className="flex flex-wrap gap-1.5">
-                                                {selectedProject.tags.map(tag => (
-                                                    <span key={tag} className="px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-xs font-medium text-neutral-300">
+                                                {selectedProject.tags.map((tag) => (
+                                                    <span
+                                                        key={tag}
+                                                        className="px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-xs font-medium text-neutral-300"
+                                                    >
                                                         {tag}
                                                     </span>
                                                 ))}
